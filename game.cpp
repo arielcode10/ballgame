@@ -20,7 +20,7 @@ int main()
     // Main game loop
     while (!WindowShouldClose())
     {
-        // Update
+        // Move
         if (IsKeyDown(KEY_RIGHT))
             ballPosition.x += ballSpeed * GetFrameTime();
         if (IsKeyDown(KEY_LEFT))
