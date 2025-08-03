@@ -1,16 +1,19 @@
 #include "raylib.h"
 #include <random>
 #include <time.h>
+#include <thread>
 
 // WINDOW size
 const int screenWidth = 800;
 const int screenHeight = 450;
 
 #define FOOD_BALL_SIZE 15.0f
-#define NEG_RATE 8
+#define START_BALL_SIZE 20.0f
+#define POS_RATE 12
 
 void borderPlayer(Vector2 *ballPos, float ballRad, float ballSpd);
 void foodEat(bool *eaten, Vector2 *randPos, Vector2 ballPos, float *ballRad);
+bool tryGameAgain(float *ballRadius);
 
 int main()
 {
@@ -20,35 +23,58 @@ int main()
     // Set the ball's initial position
     Vector2 ballPosition = {static_cast<float>(screenWidth) / 2, static_cast<float>(screenHeight) / 2};
     Vector2 randPos = {0, 0};
-    float ballRadius = 20.0f;
+    float ballRadius = START_BALL_SIZE;
     float ballSpeed = 200.0f;
     bool foodEaten = false;
+    bool gameOver = false;
 
     SetTargetFPS(60); // Set desired frame rate
 
     // Main game loop
     while (!WindowShouldClose())
     {
-        ballRadius += 0.1;
-        // Move
-        if (IsKeyDown(KEY_RIGHT))
-            ballPosition.x += ballSpeed * GetFrameTime();
-        if (IsKeyDown(KEY_LEFT))
-            ballPosition.x -= ballSpeed * GetFrameTime();
-        if (IsKeyDown(KEY_DOWN))
-            ballPosition.y += ballSpeed * GetFrameTime();
-        if (IsKeyDown(KEY_UP))
-            ballPosition.y -= ballSpeed * GetFrameTime();
-
-        borderPlayer(&ballPosition, ballRadius, ballSpeed);
-        foodEat(&foodEaten, &randPos, ballPosition, &ballRadius);
-
-        // Draw
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        DrawText("Move the ball with arrow keys", 10, 10, 20, DARKGRAY);
-        DrawCircleV(ballPosition, ballRadius, MAROON);
+        if (!gameOver)
+        {
+            ballRadius -= 0.1;
+
+            // Move
+            if (IsKeyDown(KEY_RIGHT))
+                ballPosition.x += ballSpeed * GetFrameTime();
+            if (IsKeyDown(KEY_LEFT))
+                ballPosition.x -= ballSpeed * GetFrameTime();
+            if (IsKeyDown(KEY_DOWN))
+                ballPosition.y += ballSpeed * GetFrameTime();
+            if (IsKeyDown(KEY_UP))
+                ballPosition.y -= ballSpeed * GetFrameTime();
+
+            borderPlayer(&ballPosition, ballRadius, ballSpeed);
+            foodEat(&foodEaten, &randPos, ballPosition, &ballRadius);
+
+            if (ballRadius <= 0)
+            {
+                gameOver = true;
+                // reset ball position
+                ballPosition = {static_cast<float>(screenWidth) / 2, static_cast<float>(screenHeight) / 2};
+            }
+
+            DrawText("Move the ball with arrow keys", 10, 10, 20, DARKGRAY);
+            DrawCircleV(ballPosition, ballRadius, MAROON);
+        }
+        else
+        {
+            // Game Over text
+            int fontSize = 50;
+            int overTextWidth = MeasureText("Game Over!", fontSize);
+            int posX = (screenWidth - overTextWidth) / 2;
+            int posY = (screenHeight - fontSize) / 2 - 60;
+            DrawText("Game Over!", posX, posY, fontSize, DARKGRAY);
+
+            // Try Again button logic and drawing
+            gameOver = !tryGameAgain(&ballRadius);
+        }
 
         EndDrawing();
     }
@@ -106,8 +132,28 @@ void foodEat(bool *eaten, Vector2 *randPos, Vector2 ballPos, float *ballRad)
     if (CheckCollisionPointCircle(*randPos, ballPos, *ballRad)) // if eating food
     {
         *eaten = false;
-        (*ballRad) -= NEG_RATE; // grow smaller
+        (*ballRad) += POS_RATE; // grow smaller
     }
     // draw food onto screen
     DrawCircleV(*randPos, FOOD_BALL_SIZE, GREEN);
+}
+
+bool tryGameAgain(float *ballRadius)
+{
+    Rectangle button = { (screenWidth - 120) / 2, screenHeight / 2 + 20, 120, 50 };
+    Vector2 mousePos = GetMousePosition();
+    bool hovering = CheckCollisionPointRec(mousePos, button);
+    bool clicked = hovering && IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
+
+    DrawRectangleRec(button, hovering ? LIGHTGRAY : GRAY);
+    DrawRectangleLines(button.x, button.y, button.width, button.height, BLACK);
+    DrawText("Try again!", button.x + 10, button.y + 15, 20, BLACK);
+
+    if (clicked)
+    {
+        *ballRadius = START_BALL_SIZE;
+        return true;
+    }
+
+    return false;
 }
