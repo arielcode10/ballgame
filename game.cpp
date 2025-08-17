@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include <string>
 #include <random>
 #include <time.h>
 #include <thread>
@@ -7,13 +8,17 @@
 const int screenWidth = 800;
 const int screenHeight = 450;
 
+int score = 0;
+
 #define FOOD_BALL_SIZE 15.0f
 #define START_BALL_SIZE 20.0f
 #define POS_RATE 12
+#define MAX_SCORE 32
 
 void borderPlayer(Vector2 *ballPos, float ballRad, float ballSpd);
 void foodEat(bool *eaten, Vector2 *randPos, Vector2 ballPos, float *ballRad);
 bool tryGameAgain(float *ballRadius);
+void winGame();
 
 int main()
 {
@@ -27,6 +32,7 @@ int main()
     float ballSpeed = 200.0f;
     bool foodEaten = false;
     bool gameOver = false;
+    char str_score[MAX_SCORE] = "";
 
     SetTargetFPS(60); // Set desired frame rate
 
@@ -60,7 +66,9 @@ int main()
                 ballPosition = {static_cast<float>(screenWidth) / 2, static_cast<float>(screenHeight) / 2};
             }
 
-            DrawText("Move the ball with arrow keys", 10, 10, 20, DARKGRAY);
+            sprintf(str_score, "%d", score);
+            DrawText("Score: ", 10, 10, 20, DARKGRAY);
+            DrawText(str_score, 80, 10, 20, DARKGRAY);
             DrawCircleV(ballPosition, ballRadius, MAROON);
         }
         else
@@ -133,7 +141,10 @@ void foodEat(bool *eaten, Vector2 *randPos, Vector2 ballPos, float *ballRad)
     {
         *eaten = false;
         (*ballRad) += POS_RATE; // grow smaller
+        // increment score
+        score++;
     }
+    
     // draw food onto screen
     DrawCircleV(*randPos, FOOD_BALL_SIZE, GREEN);
 }
@@ -156,4 +167,14 @@ bool tryGameAgain(float *ballRadius)
     }
 
     return false;
+}
+
+// TODO - win condition 
+/*
+the ball gets to it's biggest size display win screen,
+show score and give an option to play again.
+*/
+void winGame()
+{
+    // TODO
 }
