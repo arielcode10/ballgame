@@ -18,7 +18,7 @@ int score = 0;
 void borderPlayer(Vector2 *ballPos, float ballRad, float ballSpd);
 void foodEat(bool *eaten, Vector2 *randPos, Vector2 ballPos, float *ballRad);
 bool tryGameAgain(float *ballRadius);
-void winGame();
+bool winGame(float ballRadius);
 
 int main()
 {
@@ -40,10 +40,10 @@ int main()
     while (!WindowShouldClose())
     {
         BeginDrawing();
-        ClearBackground(RAYWHITE);
 
         if (!gameOver)
         {
+            ClearBackground(RAYWHITE);
             ballRadius -= 0.1;
 
             // Move
@@ -66,6 +66,11 @@ int main()
                 ballPosition = {static_cast<float>(screenWidth) / 2, static_cast<float>(screenHeight) / 2};
             }
 
+            if (winGame(ballRadius))
+            {
+                gameOver = true;
+            }
+
             sprintf(str_score, "%d", score);
             DrawText("Score: ", 10, 10, 20, DARKGRAY);
             DrawText(str_score, 80, 10, 20, DARKGRAY);
@@ -73,13 +78,32 @@ int main()
         }
         else
         {
-            // Game Over text
-            int fontSize = 50;
-            int overTextWidth = MeasureText("Game Over!", fontSize);
-            int posX = (screenWidth - overTextWidth) / 2;
-            int posY = (screenHeight - fontSize) / 2 - 60;
-            DrawText("Game Over!", posX, posY, fontSize, DARKGRAY);
-
+            if (winGame(ballRadius))
+            {
+                // Game Won text
+                int fontSize = 50;
+                int wonTextWidth = MeasureText("You won!", fontSize);
+                int scoreTextWidth = MeasureText("Score!", fontSize);
+                int posX = (screenWidth - wonTextWidth) / 2;
+                int posY = (screenHeight - fontSize) / 2 - 60;
+                DrawText("You won!", posX, posY - 20, fontSize, WHITE);
+                DrawText("Score: ", posX, posY + 40, fontSize, WHITE);
+                DrawText(str_score, posX + scoreTextWidth + 20, posY + 40, fontSize, WHITE);
+                // reset score
+                score = 0;
+            }
+            else
+            {
+                // Game Over text
+                int fontSize = 50;
+                int overTextWidth = MeasureText("Game Over!", fontSize);
+                int posX = (screenWidth - overTextWidth) / 2;
+                int posY = (screenHeight - fontSize) / 2 - 60;
+                DrawText("Game Over!", posX, posY, fontSize, DARKGRAY);
+                // reset score
+                score = 0;
+            }
+            foodEaten = false;
             // Try Again button logic and drawing
             gameOver = !tryGameAgain(&ballRadius);
         }
@@ -149,6 +173,11 @@ void foodEat(bool *eaten, Vector2 *randPos, Vector2 ballPos, float *ballRad)
     DrawCircleV(*randPos, FOOD_BALL_SIZE, GREEN);
 }
 
+/***********/
+// Function displays a try again button in order to try the game again.
+// INPUT: ballRadius - the radius of the ball,
+// OUTPUT: if the player chose to try again
+/***********/
 bool tryGameAgain(float *ballRadius)
 {
     Rectangle button = { (screenWidth - 120) / 2, screenHeight / 2 + 20, 120, 50 };
@@ -169,12 +198,17 @@ bool tryGameAgain(float *ballRadius)
     return false;
 }
 
-// TODO - win condition 
-/*
-the ball gets to it's biggest size display win screen,
-show score and give an option to play again.
-*/
-void winGame()
+/***********/
+// Function checks if the player has won.
+// INPUT: ballRadius - the radius of the ball,
+// OUTPUT: if the player won
+/***********/
+bool winGame(float ballRadius)
 {
-    // TODO
+    // check if win condition
+    if (ballRadius >= screenWidth)
+    {
+        return true;
+    }
+    return false;
 }
