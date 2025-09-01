@@ -20,6 +20,19 @@ void foodEat(bool *eaten, Vector2 *randPos, Vector2 ballPos, float *ballRad);
 bool tryGameAgain(float *ballRadius);
 bool winGame(float ballRadius);
 
+// TODO - add classes to make code more readable and organised 
+/*
+class Ball
+{
+    ...
+}
+
+class Food : public Ball - example
+{
+    ...
+}
+*/
+
 int main()
 {
     srand(time(NULL));
@@ -48,15 +61,15 @@ int main()
 
             // Move
             if (IsKeyDown(KEY_RIGHT))
-                ballPosition.x += ballSpeed * GetFrameTime();
+                randPos.x -= ballSpeed * GetFrameTime();
             if (IsKeyDown(KEY_LEFT))
-                ballPosition.x -= ballSpeed * GetFrameTime();
+                randPos.x += ballSpeed * GetFrameTime();
             if (IsKeyDown(KEY_DOWN))
-                ballPosition.y += ballSpeed * GetFrameTime();
+                randPos.y -= ballSpeed * GetFrameTime();
             if (IsKeyDown(KEY_UP))
-                ballPosition.y -= ballSpeed * GetFrameTime();
+                randPos.y += ballSpeed * GetFrameTime();
 
-            borderPlayer(&ballPosition, ballRadius, ballSpeed);
+            // borderPlayer(&ballPosition, ballRadius, ballSpeed);
             foodEat(&foodEaten, &randPos, ballPosition, &ballRadius);
 
             if (ballRadius <= 0)
@@ -127,19 +140,19 @@ void borderPlayer(Vector2 *ballPos, float ballRad, float ballSpd)
 {
     if (ballPos->y >= screenHeight - ballRad) // if hit bottom
     {
-        ballPos->y -= ballSpd * GetFrameTime();
+        ballPos->y = ballRad + 10;
     }
     if (ballPos->x >= screenWidth - ballRad) // if hit right side
     {
-        ballPos->x -= ballSpd * GetFrameTime();
+        ballPos->x = ballRad + 10;
     }
     if (ballPos->y <= ballRad) // if hit top
     {
-        ballPos->y += ballSpd * GetFrameTime();
+        ballPos->y = screenHeight - ballRad;
     }
     if (ballPos->x <= ballRad) // if hit left side
     {
-        ballPos->x += ballSpd * GetFrameTime();
+        ballPos->x = screenWidth - ballRad;
     }
 }
 
