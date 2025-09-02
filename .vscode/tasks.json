@@ -6,6 +6,7 @@
       "label": "C++: g++.exe build active file",
       "command": "C:/msys64/ucrt64/bin/g++.exe",
       "args": [
+        "Ball.cpp",
         "-fdiagnostics-color=always",
         "-Wall",
         "-std=c++17",

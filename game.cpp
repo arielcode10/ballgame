@@ -1,8 +1,9 @@
 #include "raylib.h"
 #include <string>
+#include <vector>
 #include <random>
 #include <time.h>
-#include <thread>
+#include "Ball.h"
 
 // WINDOW size
 const int screenWidth = 800;
@@ -15,23 +16,6 @@ int score = 0;
 #define POS_RATE 12
 #define MAX_SCORE 32
 
-void borderPlayer(Vector2 *ballPos, float ballRad, float ballSpd);
-void foodEat(bool *eaten, Vector2 *randPos, Vector2 ballPos, float *ballRad);
-bool tryGameAgain(float *ballRadius);
-bool winGame(float ballRadius);
-
-// TODO - add classes to make code more readable and organised 
-/*
-class Ball
-{
-    ...
-}
-
-class Food : public Ball - example
-{
-    ...
-}
-*/
 
 int main()
 {
@@ -40,12 +24,19 @@ int main()
 
     // Set the ball's initial position
     Vector2 ballPosition = {static_cast<float>(screenWidth) / 2, static_cast<float>(screenHeight) / 2};
-    Vector2 randPos = {0, 0};
     float ballRadius = START_BALL_SIZE;
     float ballSpeed = 200.0f;
     bool foodEaten = false;
     bool gameOver = false;
     char str_score[MAX_SCORE] = "";
+    Ball *player = new Ball(ballRadius, ballSpeed, ballPosition);
+    Food *food = new Food(ballRadius, ballSpeed, ballPosition, foodEaten);
+    // std::vector<Food*>  
+    /*
+    TODO - add food array for multiple foods 
+    e.g: vector<Food*> ... 
+
+    */
 
     SetTargetFPS(60); // Set desired frame rate
 
@@ -57,41 +48,26 @@ int main()
         if (!gameOver)
         {
             ClearBackground(RAYWHITE);
-            ballRadius -= 0.1;
+            player->shrinkBall(); // shrink ball
+            food->foodEat(player, &score); // player eat food
 
-            // Move
-            if (IsKeyDown(KEY_RIGHT))
-                randPos.x -= ballSpeed * GetFrameTime();
-            if (IsKeyDown(KEY_LEFT))
-                randPos.x += ballSpeed * GetFrameTime();
-            if (IsKeyDown(KEY_DOWN))
-                randPos.y -= ballSpeed * GetFrameTime();
-            if (IsKeyDown(KEY_UP))
-                randPos.y += ballSpeed * GetFrameTime();
+            food->moveFood(); // player move to food
 
-            // borderPlayer(&ballPosition, ballRadius, ballSpeed);
-            foodEat(&foodEaten, &randPos, ballPosition, &ballRadius);
+            // if game over
+            gameOver = player->gameLost() || player->winGame();
 
-            if (ballRadius <= 0)
-            {
-                gameOver = true;
-                // reset ball position
-                ballPosition = {static_cast<float>(screenWidth) / 2, static_cast<float>(screenHeight) / 2};
-            }
 
-            if (winGame(ballRadius))
-            {
-                gameOver = true;
-            }
-
+            food->drawBall(GREEN);
+            player->drawBall(MAROON);
+            
+            // draw score
             sprintf(str_score, "%d", score);
             DrawText("Score: ", 10, 10, 20, DARKGRAY);
             DrawText(str_score, 80, 10, 20, DARKGRAY);
-            DrawCircleV(ballPosition, ballRadius, MAROON);
         }
         else
         {
-            if (winGame(ballRadius))
+            if (player->winGame())
             {
                 // Game Won text
                 int fontSize = 50;
@@ -118,7 +94,7 @@ int main()
             }
             foodEaten = false;
             // Try Again button logic and drawing
-            gameOver = !tryGameAgain(&ballRadius);
+            gameOver = !player->tryGameAgain();
         }
 
         EndDrawing();
@@ -129,99 +105,3 @@ int main()
     return 0;
 }
 
-/***********/
-// Function adds border logic into window.
-// INPUT: ballPos - the position of the ball,
-// ballRad - the radius of the ball,
-// ballSpd - the speed of the ball.
-// OUTPUT: None
-/***********/
-void borderPlayer(Vector2 *ballPos, float ballRad, float ballSpd)
-{
-    if (ballPos->y >= screenHeight - ballRad) // if hit bottom
-    {
-        ballPos->y = ballRad + 10;
-    }
-    if (ballPos->x >= screenWidth - ballRad) // if hit right side
-    {
-        ballPos->x = ballRad + 10;
-    }
-    if (ballPos->y <= ballRad) // if hit top
-    {
-        ballPos->y = screenHeight - ballRad;
-    }
-    if (ballPos->x <= ballRad) // if hit left side
-    {
-        ballPos->x = screenWidth - ballRad;
-    }
-}
-
-/***********/
-// Function adds food and eating to make ball smaller.
-// INPUT: ballPos - the position of the ball,
-// eaten - check if food was eaten
-// ballRad - the radius of the ball,
-// randPos - the random position of the food.
-// OUTPUT: None
-/***********/
-void foodEat(bool *eaten, Vector2 *randPos, Vector2 ballPos, float *ballRad)
-{
-    if (!*eaten) // if food eaten
-    {
-        // get random pos
-        randPos->x = static_cast<float>(rand() % screenWidth);
-        randPos->y = static_cast<float>(rand() % screenHeight);
-        *eaten = true;
-    }
-
-    if (CheckCollisionPointCircle(*randPos, ballPos, *ballRad)) // if eating food
-    {
-        *eaten = false;
-        (*ballRad) += POS_RATE; // grow smaller
-        // increment score
-        score++;
-    }
-    
-    // draw food onto screen
-    DrawCircleV(*randPos, FOOD_BALL_SIZE, GREEN);
-}
-
-/***********/
-// Function displays a try again button in order to try the game again.
-// INPUT: ballRadius - the radius of the ball,
-// OUTPUT: if the player chose to try again
-/***********/
-bool tryGameAgain(float *ballRadius)
-{
-    Rectangle button = { (screenWidth - 120) / 2, screenHeight / 2 + 20, 120, 50 };
-    Vector2 mousePos = GetMousePosition();
-    bool hovering = CheckCollisionPointRec(mousePos, button);
-    bool clicked = hovering && IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
-
-    DrawRectangleRec(button, hovering ? LIGHTGRAY : GRAY);
-    DrawRectangleLines(button.x, button.y, button.width, button.height, BLACK);
-    DrawText("Try again!", button.x + 10, button.y + 15, 20, BLACK);
-
-    if (clicked)
-    {
-        *ballRadius = START_BALL_SIZE;
-        return true;
-    }
-
-    return false;
-}
-
-/***********/
-// Function checks if the player has won.
-// INPUT: ballRadius - the radius of the ball,
-// OUTPUT: if the player won
-/***********/
-bool winGame(float ballRadius)
-{
-    // check if win condition
-    if (ballRadius >= screenWidth)
-    {
-        return true;
-    }
-    return false;
-}
