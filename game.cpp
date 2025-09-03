@@ -12,6 +12,7 @@ const int screenHeight = 450;
 int score = 0;
 
 #define FOOD_BALL_SIZE 15.0f
+#define MAX_FOOD 5
 #define START_BALL_SIZE 20.0f
 #define POS_RATE 12
 #define MAX_SCORE 32
@@ -30,13 +31,14 @@ int main()
     bool gameOver = false;
     char str_score[MAX_SCORE] = "";
     Ball *player = new Ball(ballRadius, ballSpeed, ballPosition);
-    Food *food = new Food(ballRadius, ballSpeed, ballPosition, foodEaten);
-    // std::vector<Food*>  
-    /*
-    TODO - add food array for multiple foods 
-    e.g: vector<Food*> ... 
+    // Food *food = new Food(ballRadius, ballSpeed, ballPosition, foodEaten);
+    std::vector<Food*> foods;
 
-    */
+    // set foods
+    for (int i = 0; i < MAX_FOOD; i++)
+    {
+        foods.push_back(new Food(ballRadius, ballSpeed, ballPosition, foodEaten));
+    }
 
     SetTargetFPS(60); // Set desired frame rate
 
@@ -49,15 +51,25 @@ int main()
         {
             ClearBackground(RAYWHITE);
             player->shrinkBall(); // shrink ball
-            food->foodEat(player, &score); // player eat food
-
-            food->moveFood(); // player move to food
+            
+            for (int i = 0; i < foods.size(); i++)
+            {
+                foods[i]->foodEat(player, &score); // player eat food
+            }
+            
+            for (int i = 0; i < foods.size(); i++)
+            {
+                foods[i]->moveFood(); // player move to food
+            }
 
             // if game over
             gameOver = player->gameLost() || player->winGame();
 
-
-            food->drawBall(GREEN);
+            for (int i = 0; i < foods.size(); i++)
+            {
+                foods[i]->drawBall(GREEN);
+            }
+            
             player->drawBall(MAROON);
             
             // draw score
