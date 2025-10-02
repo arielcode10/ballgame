@@ -16,7 +16,7 @@ public:
     void borderPlayer(void);
     bool tryGameAgain(void);
     bool winGame(void);
-    void drawBall(Color color);
+    void drawBall(Color color, Texture2D texture);
     bool gameLost(void);
     void shrinkBall(void);
 

@@ -34,9 +34,13 @@ bool Ball::winGame(void) {
     return ballRadius >= 800; // screenWidth
 }
 
-void Ball::drawBall(Color color) {
-    DrawCircleV(ballPosition, ballRadius, color);
+void Ball::drawBall(Color color, Texture2D texture) {
+    Rectangle src = { 0, 0, (float)texture.width, (float)texture.height };
+    Rectangle dest = { ballPosition.x, ballPosition.y, ballRadius * 2, ballRadius * 2 };
+    Vector2 origin = { ballRadius, ballRadius };
+    DrawTexturePro(texture, src, dest, origin, 0.0f, WHITE);
 }
+
 
 bool Ball::gameLost(void) {
     if (ballRadius <= 0) {

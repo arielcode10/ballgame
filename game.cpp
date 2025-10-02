@@ -20,9 +20,12 @@ int score = 0;
 
 int main()
 {
+    // Build full path to image based on exe location
+    std::string food_path = std::string(GetApplicationDirectory()) + "Images/large_green-monster.png";
+     std::string player_path = std::string(GetApplicationDirectory()) + "Images/monster-player.png";
+    
     srand(time(NULL));
     InitWindow(screenWidth, screenHeight, "Raylib Example - Moving Ball");
-
     // Set the ball's initial position
     Vector2 ballPosition = {static_cast<float>(screenWidth) / 2, static_cast<float>(screenHeight) / 2};
     float ballRadius = START_BALL_SIZE;
@@ -33,6 +36,23 @@ int main()
     Ball *player = new Ball(ballRadius, ballSpeed, ballPosition);
     // Food *food = new Food(ballRadius, ballSpeed, ballPosition, foodEaten);
     std::vector<Food*> foods;
+
+    // Image 
+    Image img = LoadImage(player_path.c_str());
+
+    if (img.data == NULL) {
+    printf("Failed to load image!\n");
+    }
+
+    Texture2D player_texture = LoadTextureFromImage(img);
+
+    img = LoadImage(food_path.c_str());
+    if (img.data == NULL) {
+    printf("Failed to load image!\n");
+    }
+
+    Texture2D food_texture = LoadTextureFromImage(img);
+    UnloadImage(img);
 
     // set foods
     for (int i = 0; i < MAX_FOOD; i++)
@@ -52,12 +72,12 @@ int main()
             ClearBackground(RAYWHITE);
             player->shrinkBall(); // shrink ball
             
-            for (int i = 0; i < foods.size(); i++)
+            for (unsigned int i = 0; i < foods.size(); i++)
             {
                 foods[i]->foodEat(player, &score); // player eat food
             }
             
-            for (int i = 0; i < foods.size(); i++)
+            for (unsigned int i = 0; i < foods.size(); i++)
             {
                 foods[i]->moveFood(); // player move to food
             }
@@ -65,13 +85,12 @@ int main()
             // if game over
             gameOver = player->gameLost() || player->winGame();
 
-            for (int i = 0; i < foods.size(); i++)
+            for (unsigned int i = 0; i < foods.size(); i++)
             {
-                foods[i]->drawBall(GREEN);
+                foods[i]->drawBall(GREEN, food_texture);
             }
             
-            player->drawBall(MAROON);
-            
+            player->drawBall(MAROON, player_texture);
             // draw score
             sprintf(str_score, "%d", score);
             DrawText("Score: ", 10, 10, 20, DARKGRAY);
@@ -113,7 +132,10 @@ int main()
     }
 
     // Cleanup
+    UnloadTexture(food_texture);
+    UnloadTexture(player_texture);
     CloseWindow();
+
     return 0;
 }
 
