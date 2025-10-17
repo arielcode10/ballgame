@@ -20,10 +20,17 @@ int score = 0;
 
 int main()
 {
-    // Build full path to image based on exe location
-    std::string food_path = std::string(GetApplicationDirectory()) + "Images/large_green-monster.png";
-     std::string player_path = std::string(GetApplicationDirectory()) + "Images/monster-player.png";
-    
+    std::string exeDir = GetApplicationDirectory(); // e.g., .../cppgame/src/
+
+    // Remove "src/" from the end
+    if (exeDir.size() >= 4 && exeDir.substr(exeDir.size() - 4) == "src\\") {
+        exeDir = exeDir.substr(0, exeDir.size() - 4); // for Windows
+    }
+
+    // Build paths
+    std::string player_path = exeDir + "Images/monster-player.png";
+    std::string food_path   = exeDir + "Images/large_green-monster.png";
+
     srand(time(NULL));
     InitWindow(screenWidth, screenHeight, "Raylib Example - Moving Ball");
     // Set the ball's initial position
